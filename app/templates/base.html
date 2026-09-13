@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Luxury Wheels{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">Luxury Wheels</a>
+            <div>
+                {% if current_user.is_authenticated %}
+                    <span class="text-light me-3">Olá, {{ current_user.nome }}</span>
+                    <a href="{{ url_for('main.minhas_reservas') }}" class="btn btn-outline-light btn-sm me-2">As Minhas Reservas</a>
+                    <a href="{{ url_for('main.logout') }}" class="btn btn-outline-light btn-sm">Sair</a>
+                {% else %}
+                    <a href="{{ url_for('main.login') }}" class="btn btn-outline-light btn-sm me-2">Entrar</a>
+                    <a href="{{ url_for('main.registo') }}" class="btn btn-light btn-sm">Registar</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+            {% if mensagens %}
+                {% for categoria, mensagem in mensagens %}
+                    <div class="alert alert-{{ categoria }}">{{ mensagem }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

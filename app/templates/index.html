@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Pesquisar Veículos{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Encontra o teu veículo</h1>
+
+<form action="{{ url_for('main.pesquisa') }}" method="get" class="row g-3">
+    <div class="col-md-3">
+        <label class="form-label">Categoria</label>
+        <select name="categoria" class="form-select">
+            <option value="">Todas</option>
+            <option value="Pequeno">Pequeno</option>
+            <option value="Médio">Médio</option>
+            <option value="Grande">Grande</option>
+            <option value="SUV">SUV</option>
+            <option value="Luxo">Luxo</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Transmissão</label>
+        <select name="transmissao" class="form-select">
+            <option value="">Todas</option>
+            <option value="Automático">Automático</option>
+            <option value="Manual">Manual</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Tipo</label>
+        <select name="tipo" class="form-select">
+            <option value="">Todos</option>
+            <option value="Carro">Carro</option>
+            <option value="Moto">Moto</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Quantidade de pessoas</label>
+        <select name="pessoas" class="form-select">
+            <option value="">Todas</option>
+            <option value="1-4">1 a 4</option>
+            <option value="5-6">5 a 6</option>
+            <option value="7+">Mais de 7</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Valor máximo da diária (€)</label>
+        <input type="number" step="0.01" name="valor_max" class="form-control" placeholder="ex.: 100">
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">Pesquisar</button>
+    </div>
+</form>
+{% endblock %}

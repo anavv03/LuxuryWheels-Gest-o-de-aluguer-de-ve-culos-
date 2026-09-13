@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}As Minhas Reservas{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">As Minhas Reservas</h1>
+
+{% if reservas %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Veículo</th>
+            <th>Data início</th>
+            <th>Data fim</th>
+            <th>Valor total</th>
+            <th>Pagamento</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for reserva in reservas %}
+        <tr>
+            <td>{{ reserva.veiculo.marca }} {{ reserva.veiculo.modelo }}</td>
+            <td>{{ reserva.data_inicio }}</td>
+            <td>{{ reserva.data_fim }}</td>
+            <td>{{ '%.2f'|format(reserva.valor_total) }} €</td>
+            <td>{{ reserva.forma_pagamento.nome }}</td>
+            <td>
+                {% if reserva.estado == 'ativa' %}
+                    <span class="badge bg-success">Ativa</span>
+                {% else %}
+                    <span class="badge bg-secondary">Cancelada</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if reserva.estado == 'ativa' %}
+                <a href="{{ url_for('main.editar_reserva', reserva_id=reserva.id) }}"
+                   class="btn btn-sm btn-outline-primary">Editar</a>
+                <form action="{{ url_for('main.cancelar_reserva', reserva_id=reserva.id) }}"
+                      method="post" class="d-inline"
+                      onsubmit="return confirm('Tens a certeza que queres cancelar esta reserva?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Ainda não tens nenhuma reserva.</p>
+{% endif %}
+{% endblock %}

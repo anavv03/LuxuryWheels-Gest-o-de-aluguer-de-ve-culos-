@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Resultados da Pesquisa{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Resultados</h1>
+
+<p><a href="{{ url_for('main.index') }}">&larr; Nova pesquisa</a></p>
+
+{% if veiculos %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for veiculo in veiculos %}
+        <div class="col">
+            <div class="card h-100">
+                {% if veiculo.imagem %}
+                <img src="{{ veiculo.imagem }}" class="card-img-top" alt="{{ veiculo.modelo }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ veiculo.marca }} {{ veiculo.modelo }}</h5>
+                    <p class="card-text">
+                        {{ veiculo.categoria }} · {{ veiculo.transmissao }} · {{ veiculo.tipo }}<br>
+                        Até {{ veiculo.quantidade_pessoas }} pessoas<br>
+                        <strong>{{ '%.2f'|format(veiculo.valor_diaria) }} € / dia</strong>
+                    </p>
+                    <a href="{{ url_for('main.reservar', veiculo_id=veiculo.id) }}" class="btn btn-outline-primary w-100">Reservar</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Nenhum veículo encontrado com esses filtros.</p>
+{% endif %}
+{% endblock %}
