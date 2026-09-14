@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Gestão de Veículos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Gestão de Veículos</h1>
+    <a href="{{ url_for('main.admin_novo_veiculo') }}" class="btn btn-primary">+ Adicionar Veículo</a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Marca / Modelo</th>
+            <th>Categoria</th>
+            <th>Tipo</th>
+            <th>Diária</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for veiculo in veiculos %}
+        <tr>
+            <td>{{ veiculo.marca }} {{ veiculo.modelo }}</td>
+            <td>{{ veiculo.categoria }}</td>
+            <td>{{ veiculo.tipo }}</td>
+            <td>{{ '%.2f'|format(veiculo.valor_diaria) }} €</td>
+            <td>
+                {% if veiculo.esta_valido() %}
+                    <span class="badge bg-success">Válido</span>
+                {% else %}
+                    <span class="badge bg-danger">Revisão/Inspeção em falta</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('main.admin_editar_veiculo', veiculo_id=veiculo.id) }}"
+                   class="btn btn-sm btn-outline-primary">Editar</a>
+                <form action="{{ url_for('main.admin_eliminar_veiculo', veiculo_id=veiculo.id) }}"
+                      method="post" class="d-inline"
+                      onsubmit="return confirm('Tens a certeza que queres eliminar este veículo?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

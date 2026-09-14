@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{{ titulo }}</h1>
+
+<form method="post" enctype="multipart/form-data" class="col-md-6">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">{{ form.marca.label(class="form-label") }}{{ form.marca(class="form-control") }}</div>
+    <div class="mb-3">{{ form.modelo.label(class="form-label") }}{{ form.modelo(class="form-control") }}</div>
+    <div class="mb-3">{{ form.categoria.label(class="form-label") }}{{ form.categoria(class="form-select") }}</div>
+    <div class="mb-3">{{ form.transmissao.label(class="form-label") }}{{ form.transmissao(class="form-select") }}</div>
+    <div class="mb-3">{{ form.tipo.label(class="form-label") }}{{ form.tipo(class="form-select") }}</div>
+    <div class="mb-3">{{ form.quantidade_pessoas.label(class="form-label") }}{{ form.quantidade_pessoas(class="form-control") }}</div>
+
+    <div class="mb-3">
+        {{ form.imagem.label(class="form-label") }}
+        {{ form.imagem(class="form-control") }}
+        {% if veiculo and veiculo.imagem %}
+            <div class="mt-2">
+                <small class="text-muted">Imagem atual:</small><br>
+                <img src="{{ url_for('static', filename='imagens/' + veiculo.imagem) }}" style="max-height: 100px;">
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mb-3">{{ form.valor_diaria.label(class="form-label") }}{{ form.valor_diaria(class="form-control") }}</div>
+    <div class="mb-3">{{ form.data_ultima_revisao.label(class="form-label") }}{{ form.data_ultima_revisao(class="form-control", type="date") }}</div>
+    <div class="mb-3">{{ form.data_proxima_revisao.label(class="form-label") }}{{ form.data_proxima_revisao(class="form-control", type="date") }}</div>
+    <div class="mb-3">{{ form.data_ultima_inspecao.label(class="form-label") }}{{ form.data_ultima_inspecao(class="form-control", type="date") }}</div>
+
+    {{ form.submit(class="btn btn-primary") }}
+    <a href="{{ url_for('main.admin_veiculos') }}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

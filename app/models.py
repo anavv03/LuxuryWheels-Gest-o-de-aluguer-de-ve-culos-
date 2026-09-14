@@ -11,6 +11,7 @@ class Cliente(UserMixin, db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     password_hash = db.Column(db.String, nullable=False)
     data_registo = db.Column(db.DateTime, server_default=db.func.now())
+    is_admin = db.Column(db.Boolean, default=False)  # novo
 
     reservas = db.relationship('Reserva', backref='cliente', lazy=True)
 

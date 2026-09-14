@@ -12,7 +12,11 @@
         <div class="col">
             <div class="card h-100">
                 {% if veiculo.imagem %}
-                <img src="{{ veiculo.imagem }}" class="card-img-top" alt="{{ veiculo.modelo }}">
+                    {% if veiculo.imagem.startswith('http') %}
+                        <img src="{{ veiculo.imagem }}" class="card-img-top" alt="{{ veiculo.modelo }}">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='imagens/' + veiculo.imagem) }}" class="card-img-top" alt="{{ veiculo.modelo }}">
+                    {% endif %}
                 {% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ veiculo.marca }} {{ veiculo.modelo }}</h5>

@@ -1,20 +1,25 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+import os
+from datetime import date
+from functools import wraps
+
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
-from app.models import Veiculo, Cliente
-from app.forms import RegistoForm, LoginForm
-from datetime import date
-from app.models import Veiculo, Cliente, Reserva, FormaPagamento
-from app.forms import RegistoForm, LoginForm, ReservaForm
-from app.forms import RegistoForm, LoginForm, ReservaForm, EditarReservaForm
+from werkzeug.utils import secure_filename
 
+from app import db
+from app.models import Veiculo, Cliente, Reserva, FormaPagamento
+from app.forms import RegistoForm, LoginForm, ReservaForm, EditarReservaForm, VeiculoForm
+
+PASTA_IMAGENS = os.path.join('app', 'static', 'imagens')
 
 main = Blueprint('main', __name__)
+
 
 @main.route('/')
 def index():
     return render_template('index.html')
+
 
 @main.route('/pesquisa')
 def pesquisa():
@@ -57,6 +62,7 @@ def pesquisa():
     }
 
     return render_template('resultados.html', veiculos=veiculos, filtros=filtros_aplicados)
+
 
 @main.route('/registo', methods=['GET', 'POST'])
 def registo():
@@ -106,9 +112,10 @@ def login():
 @main.route('/logout')
 @login_required
 def logout():
-    flask_login.flask_login.logout_user()
+    logout_user()
     flash('Sessão terminada.', 'success')
     return redirect(url_for('main.index'))
+
 
 def veiculo_disponivel_no_periodo(veiculo_id, data_inicio, data_fim, ignorar_reserva_id=None):
     """Verifica se não há sobreposição com nenhuma reserva ativa desse veículo nesse período."""
@@ -171,6 +178,7 @@ def reservar(veiculo_id):
         return redirect(url_for('main.index'))
 
     return render_template('reserva.html', form=form, veiculo=veiculo)
+
 
 @main.route('/minhas-reservas')
 @login_required
@@ -242,3 +250,120 @@ def cancelar_reserva(reserva_id):
     db.session.commit()
     flash('Reserva cancelada.', 'success')
     return redirect(url_for('main.minhas_reservas'))
+
+
+def guardar_imagem(ficheiro):
+    if not ficheiro or ficheiro.filename == '':
+        return None
+    nome_seguro = secure_filename(ficheiro.filename)
+    os.makedirs(PASTA_IMAGENS, exist_ok=True)
+    caminho = os.path.join(PASTA_IMAGENS, nome_seguro)
+    ficheiro.save(caminho)
+    return nome_seguro
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
+
+
+@main.route('/admin/veiculos')
+@login_required
+@admin_required
+def admin_veiculos():
+    veiculos = Veiculo.query.order_by(Veiculo.marca).all()
+    return render_template('admin_veiculos.html', veiculos=veiculos)
+
+
+@main.route('/admin/veiculos/novo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_novo_veiculo():
+    form = VeiculoForm()
+
+    if form.validate_on_submit():
+        nome_imagem = guardar_imagem(form.imagem.data)
+
+        novo = Veiculo(
+            marca=form.marca.data,
+            modelo=form.modelo.data,
+            categoria=form.categoria.data,
+            transmissao=form.transmissao.data,
+            tipo=form.tipo.data,
+            quantidade_pessoas=form.quantidade_pessoas.data,
+            imagem=nome_imagem,
+            valor_diaria=form.valor_diaria.data,
+            data_ultima_revisao=form.data_ultima_revisao.data.isoformat(),
+            data_proxima_revisao=form.data_proxima_revisao.data.isoformat(),
+            data_ultima_inspecao=form.data_ultima_inspecao.data.isoformat(),
+        )
+        db.session.add(novo)
+        db.session.commit()
+        flash('Veículo adicionado com sucesso.', 'success')
+        return redirect(url_for('main.admin_veiculos'))
+
+    return render_template('admin_veiculo_form.html', form=form, titulo='Adicionar Veículo')
+
+
+@main.route('/admin/veiculos/<int:veiculo_id>/editar', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_editar_veiculo(veiculo_id):
+    veiculo = Veiculo.query.get_or_404(veiculo_id)
+    form = VeiculoForm()
+
+    if request.method == 'GET':
+        form.marca.data = veiculo.marca
+        form.modelo.data = veiculo.modelo
+        form.categoria.data = veiculo.categoria
+        form.transmissao.data = veiculo.transmissao
+        form.tipo.data = veiculo.tipo
+        form.quantidade_pessoas.data = veiculo.quantidade_pessoas
+        form.valor_diaria.data = veiculo.valor_diaria
+        form.data_ultima_revisao.data = date.fromisoformat(veiculo.data_ultima_revisao)
+        form.data_proxima_revisao.data = date.fromisoformat(veiculo.data_proxima_revisao)
+        form.data_ultima_inspecao.data = date.fromisoformat(veiculo.data_ultima_inspecao)
+
+    if form.validate_on_submit():
+        nova_imagem = guardar_imagem(form.imagem.data)
+
+        veiculo.marca = form.marca.data
+        veiculo.modelo = form.modelo.data
+        veiculo.categoria = form.categoria.data
+        veiculo.transmissao = form.transmissao.data
+        veiculo.tipo = form.tipo.data
+        veiculo.quantidade_pessoas = form.quantidade_pessoas.data
+        veiculo.valor_diaria = form.valor_diaria.data
+        veiculo.data_ultima_revisao = form.data_ultima_revisao.data.isoformat()
+        veiculo.data_proxima_revisao = form.data_proxima_revisao.data.isoformat()
+        veiculo.data_ultima_inspecao = form.data_ultima_inspecao.data.isoformat()
+
+        if nova_imagem:  # só substitui se o admin escolheu um ficheiro novo
+            veiculo.imagem = nova_imagem
+
+        db.session.commit()
+        flash('Veículo atualizado com sucesso.', 'success')
+        return redirect(url_for('main.admin_veiculos'))
+
+    return render_template('admin_veiculo_form.html', form=form, titulo='Editar Veículo', veiculo=veiculo)
+
+
+@main.route('/admin/veiculos/<int:veiculo_id>/eliminar', methods=['POST'])
+@login_required
+@admin_required
+def admin_eliminar_veiculo(veiculo_id):
+    veiculo = Veiculo.query.get_or_404(veiculo_id)
+
+    tem_reservas = Reserva.query.filter_by(veiculo_id=veiculo.id).first()
+    if tem_reservas:
+        flash('Não é possível eliminar: este veículo tem reservas associadas.', 'danger')
+        return redirect(url_for('main.admin_veiculos'))
+
+    db.session.delete(veiculo)
+    db.session.commit()
+    flash('Veículo eliminado com sucesso.', 'success')
+    return redirect(url_for('main.admin_veiculos'))

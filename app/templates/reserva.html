@@ -7,7 +7,11 @@
 <div class="row">
     <div class="col-md-4 mb-4">
         {% if veiculo.imagem %}
-        <img src="{{ veiculo.imagem }}" class="img-fluid rounded" alt="{{ veiculo.modelo }}">
+            {% if veiculo.imagem.startswith('http') %}
+                <img src="{{ veiculo.imagem }}" class="img-fluid rounded" alt="{{ veiculo.modelo }}">
+            {% else %}
+                <img src="{{ url_for('static', filename='imagens/' + veiculo.imagem) }}" class="img-fluid rounded" alt="{{ veiculo.modelo }}">
+            {% endif %}
         {% endif %}
         <p class="mt-3">
             {{ veiculo.categoria }} · {{ veiculo.transmissao }} · {{ veiculo.tipo }}<br>
